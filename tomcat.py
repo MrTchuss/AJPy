@@ -204,7 +204,8 @@ class Tomcat(object):
 		if obj is not None:
 			headers["SC_REQ_COOKIE"] = obj.group('cookie')
 
-		attributes = [{"name": "req_attribute", "value": ("JK_LB_ACTIVATION", "ACT")}, {"name": "req_attribute", "value": ("AJP_REMOTE_PORT", "12345")}]
+		attributes = [{"name": "req_attribute", "value": ("JK_LB_ACTIVATION", "ACT")},
+			{"name": "req_attribute", "value": ("AJP_REMOTE_PORT", "{}".format(self.socket.getsockname()[1]))}]
 		if old_version == False:
 			attributes.append({"name": "query_string", "value": deploy_csrf_token[0]})
 		r = self.perform_request("/manager/html/upload", headers=headers, method="POST", user=user, password=password, attributes=attributes)
